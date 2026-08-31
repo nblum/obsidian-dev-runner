@@ -10,6 +10,21 @@ import {
   parsePackageMetadata
 } from "../src/package-scripts.ts";
 
+interface ReleaseScriptModule {
+  updateChangelog(contents: string, version: string, date: string): string;
+}
+
+/** Loads the release helper through its runtime module boundary. */
+async function loadReleaseScript(): Promise<ReleaseScriptModule> {
+  const moduleUrl = new URL("../scripts/release.mjs", import.meta.url).href;
+  const imported: unknown = await import(moduleUrl);
+  if (typeof imported !== "object" || imported === null || !("updateChangelog" in imported)
+    || typeof imported.updateChangelog !== "function") {
+    throw new Error("Release script does not export updateChangelog.");
+  }
+  return imported as ReleaseScriptModule;
+}
+
 test("parses and sorts non-empty string scripts", () => {
   const metadata = parsePackageMetadata(JSON.stringify({
     packageManager: "pnpm@10.0.0",
@@ -57,4 +72,18 @@ test("formats a Windows package command without POSIX quotes", () => {
   const command = buildRunCommand("npm", "test:a11y");
   assert.equal(formatWindowsRunCommand(command), 'npm "run" "test:a11y"');
   assert.equal(formatRunCommandForPlatform(command, "win32"), 'npm "run" "test:a11y"');
+});
+
+test("promotes Unreleased changelog notes into a dated release", async () => {
+  const releaseScript = await loadReleaseScript();
+  const changelog = "# Changelog\n\n## [Unreleased]\n\n### Fixed\n\n- Fixed release metadata.\n\n## [0.1.2] - 2026-08-31\n";
+
+  assert.equal(
+    releaseScript.updateChangelog(changelog, "0.1.3", "2026-09-01"),
+    "# Changelog\n\n## [Unreleased]\n\n## [0.1.3] - 2026-09-01\n\n### Fixed\n\n- Fixed release metadata.\n\n## [0.1.2] - 2026-08-31\n"
+  );
+  assert.throws(
+    () => releaseScript.updateChangelog("# Changelog\n\n## [Unreleased]\n\n## [0.1.2] - 2026-08-31\n", "0.1.3", "2026-09-01"),
+    /must contain release notes/
+  );
 });

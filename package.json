@@ -8,6 +8,7 @@
     "build": "npm run validate:manifest && npm run typecheck && node esbuild.config.mjs production",
     "dev": "node esbuild.config.mjs",
     "lint": "eslint .",
+    "release": "node scripts/release.mjs",
     "test": "node --test --experimental-strip-types tests/*.test.ts",
     "typecheck": "tsc --noEmit",
     "validate:manifest": "node scripts/validate-manifest.mjs"

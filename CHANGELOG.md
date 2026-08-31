@@ -2,6 +2,19 @@
 
 All notable changes to Dev Runner are documented here.
 
+## [Unreleased]
+
+### Added
+
+- Added an atomic release task that synchronizes metadata, validates, commits, tags, and pushes a release.
+
+## [0.1.2] - 2026-08-31
+
+### Fixed
+
+- Allowed manifest validation in GitHub Actions and other repository checkouts whose directory name differs from the plugin ID.
+- Synchronized all release metadata after the unsuccessful `0.1.1` tag.
+
 ## [0.1.0] - 2026-08-31
 
 ### Added

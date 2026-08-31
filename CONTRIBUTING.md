@@ -70,6 +70,20 @@ Unit tests cover command construction, package-manager detection, cross-source i
 output normalization, trust fingerprints, and persisted setting validation. UI behavior still requires a manual
 Obsidian check.
 
+## Releases
+
+Add release notes below `## [Unreleased]`, commit all pending work, and synchronize the branch with its upstream.
+Then run the complete release transaction with the next unused version:
+
+```bash
+npm run release -- 0.1.3
+```
+
+The task updates `manifest.json`, `package.json`, `package-lock.json`, `versions.json`, and `CHANGELOG.md`; runs manifest
+validation, lint, tests, and the production build; creates `chore: release <version>` and an annotated tag; then pushes
+the branch and tag atomically. It stops before changing files when the working tree is dirty, the branch differs from
+its upstream, or the tag already exists. Do not create or move release tags manually.
+
 ## Manual checklist
 
 - Start and stop a package script from a folder context menu.

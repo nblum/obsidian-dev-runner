@@ -154,5 +154,6 @@ development checklist.
 
 ## Releases
 
-Release tags use `x.y.z` and must exactly match `manifest.json`, `package.json`, and `versions.json`. Pushing a matching
-tag builds the production bundle and publishes the three required plugin assets with GitHub artifact attestations.
+Add notes below `## [Unreleased]` in `CHANGELOG.md`, commit and synchronize all pending work, then run
+`npm run release -- <x.y.z>`. The task synchronizes release metadata, runs all checks, commits, tags, and atomically
+pushes the branch and tag. The tag workflow builds and publishes the three required assets with artifact attestations.
