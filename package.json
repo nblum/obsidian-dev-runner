@@ -1,6 +1,6 @@
 {
   "name": "dev-runner",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Run and manage package scripts and README shell commands in the background.",
   "main": "main.js",
   "type": "module",
