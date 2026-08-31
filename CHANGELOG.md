@@ -4,6 +4,8 @@ All notable changes to Dev Runner are documented here.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-08-31
+
 ### Added
 
 - Added an atomic release task that synchronizes metadata, validates, commits, tags, and pushes a release.
