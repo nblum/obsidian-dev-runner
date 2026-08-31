@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { isObsidianPluginInstallPath } from "./manifest-paths.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.join(scriptDirectory, "..");
@@ -16,6 +15,14 @@ function assertValid(condition, message) {
   if (!condition) {
     throw new Error(message);
   }
+}
+
+/** Returns whether a repository root is an installed Obsidian plugin directory. */
+function isObsidianPluginInstallPath(rootPath) {
+  const pluginsDirectory = path.dirname(rootPath);
+  const obsidianDirectory = path.dirname(pluginsDirectory);
+  return path.basename(pluginsDirectory) === "plugins"
+    && path.basename(obsidianDirectory) === ".obsidian";
 }
 
 /** Validates manifest fields and synchronized release metadata. */
