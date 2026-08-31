@@ -83,6 +83,11 @@ export function buildRunCommand(packageManager: PackageManager, scriptName: stri
   };
 }
 
+/** Formats a package command as a concise human-readable UI label. */
+export function formatRunCommandLabel(command: RunCommand): string {
+  return [command.executable, ...command.args].join(" ");
+}
+
 /** Quotes a value so it remains one literal argument in a POSIX shell command. */
 export function quotePosixShellArgument(value: string): string {
   return `'${value.replaceAll("'", `'"'"'`)}'`;

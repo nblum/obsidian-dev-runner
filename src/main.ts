@@ -17,6 +17,7 @@ import {
   buildRunCommand,
   detectPackageManager,
   formatRunCommandForPlatform,
+  formatRunCommandLabel,
   parsePackageMetadata,
   type PackageManager,
   type PackageMetadata,
@@ -396,6 +397,7 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
     menu.addItem((item) => item.setTitle(this.translate("menu.packageScripts")).setIsLabel(true));
     for (const script of metadata.scripts) {
       const runCommand = buildRunCommand(packageManager, script.name);
+      const menuLabel = formatRunCommandLabel(runCommand);
       const identityKey = createArgvProcessIdentity(
         directoryPath,
         runCommand.executable,
@@ -407,7 +409,7 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
           item
             .setTitle(this.translate(
               runningProcess.stopping ? "menu.stopping" : "menu.stop",
-              { label: runningProcess.label }
+              { label: menuLabel }
             ))
             .setIcon("square")
             .setDisabled(runningProcess.stopping)
@@ -415,7 +417,7 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
           return;
         }
         item
-          .setTitle(formatRunCommandForPlatform(runCommand))
+          .setTitle(menuLabel)
           .setIcon("play")
           .onClick(() => { void this.runScript(directoryPath, script.name); });
       });

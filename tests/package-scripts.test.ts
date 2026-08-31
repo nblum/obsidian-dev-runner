@@ -5,6 +5,7 @@ import {
   detectPackageManager,
   formatRunCommand,
   formatRunCommandForPlatform,
+  formatRunCommandLabel,
   formatWindowsRunCommand,
   isPackageManagerSetting,
   parsePackageMetadata
@@ -70,6 +71,10 @@ test("rejects invalid persisted package-manager settings", () => {
 test("quotes script names as a single shell argument", () => {
   const command = buildRunCommand("npm", "test:a11y's");
   assert.equal(formatRunCommand(command), `'npm' 'run' 'test:a11y'"'"'s'`);
+});
+
+test("formats a package command as an unquoted menu label", () => {
+  assert.equal(formatRunCommandLabel(buildRunCommand("npm", "dev")), "npm run dev");
 });
 
 test("formats a Windows package command without POSIX quotes", () => {
