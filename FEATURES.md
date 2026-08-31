@@ -60,6 +60,9 @@ output, termination, and security decisions visible inside Obsidian.
 - Saved approvals can be reset from settings.
 - Security warnings can be disabled explicitly; the secure default is to keep them enabled.
 - The UI and documentation state that confirmation does not sandbox a command.
+- Direct filesystem reads are limited to project metadata and README files inside the selected vault directory.
+- Linux process termination reads `/proc/<pid>/stat` only to verify the original process identity before signaling it.
+- Runtime code does not directly write project files; confirmed child processes retain the user's system permissions.
 
 ## Settings
 
@@ -69,6 +72,8 @@ output, termination, and security decisions visible inside Obsidian.
 - Package-manager values are validated before use.
 - Boolean values are accepted only when persisted as actual booleans.
 - Trust keys are validated, deduplicated, and sorted before use.
+- Obsidian 1.13 and later receive searchable declarative definitions for every setting.
+- Obsidian versions from 1.8.7 through 1.12 retain the equivalent imperative settings interface.
 
 ## Technical requirements
 

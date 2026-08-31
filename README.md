@@ -90,6 +90,11 @@ processes; a reloaded plugin waits for the previous instance's shutdown attempt 
 Package scripts and shell blocks can execute arbitrary code with the permissions of the Obsidian process. They can
 modify files, access the network, start child processes, and read inherited environment variables.
 
+To discover and verify commands, Dev Runner directly reads `package.json`, supported lockfiles, and rendered README
+files inside the selected vault directory. On Linux it additionally reads `/proc/<pid>/stat` to verify that a process
+ID still belongs to the process group started by the plugin before sending a stop signal. The plugin does not use
+direct filesystem APIs to write project files.
+
 Dev Runner therefore displays the exact command and working directory before an untrusted command starts. An optional
 approval is bound to the command, directory, execution environment, and relevant project files. Changing one of these
 inputs invalidates the approval. Saved approvals can be reset in the plugin settings.

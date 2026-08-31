@@ -129,8 +129,8 @@ const SHUTDOWN_COORDINATOR_KEY = Symbol.for("obsidian-dev-runner.shutdown");
 
 /** Returns the renderer-wide shutdown coordinator shared across plugin reloads. */
 function getShutdownCoordinator(): ShutdownCoordinator {
-  const globalRecord = globalThis as unknown as Record<symbol, unknown>;
-  const existing = globalRecord[SHUTDOWN_COORDINATOR_KEY];
+  const windowRecord = window as unknown as Record<symbol, unknown>;
+  const existing = windowRecord[SHUTDOWN_COORDINATOR_KEY];
   if (typeof existing === "object" && existing !== null && "pending" in existing) {
     const pending = existing.pending;
     if (pending === null || pending instanceof Promise) {
@@ -138,7 +138,7 @@ function getShutdownCoordinator(): ShutdownCoordinator {
     }
   }
   const coordinator: ShutdownCoordinator = { pending: null };
-  globalRecord[SHUTDOWN_COORDINATOR_KEY] = coordinator;
+  windowRecord[SHUTDOWN_COORDINATOR_KEY] = coordinator;
   return coordinator;
 }
 

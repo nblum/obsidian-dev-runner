@@ -1,6 +1,10 @@
 import { spawn, spawnSync } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
+import {
+  clearTimeout as clearNodeTimeout,
+  setTimeout as setNodeTimeout
+} from "node:timers";
 
 const STOP_TIMEOUT_MS = 3_000;
 const WINDOWS_STOP_ATTEMPTS = 2;
@@ -137,6 +141,23 @@ function isProcessRunning(child: ChildProcess): boolean {
   return child.pid !== undefined && child.exitCode === null && child.signalCode === null;
 }
 
+/** Starts a renderer-owned timeout with a Node fallback for unit tests. */
+function setProcessTimeout(callback: () => void, timeoutMs: number): number {
+  if (typeof window === "undefined") {
+    return Number(setNodeTimeout(callback, timeoutMs));
+  }
+  return window.setTimeout(callback, timeoutMs);
+}
+
+/** Clears a process timeout through the host that created it. */
+function clearProcessTimeout(timeout: number): void {
+  if (typeof window === "undefined") {
+    clearNodeTimeout(timeout);
+    return;
+  }
+  window.clearTimeout(timeout);
+}
+
 /** Waits briefly for a process close event and reports whether it exited in time. */
 function waitForProcessClose(child: ChildProcess, timeoutMs: number): Promise<boolean> {
   if (!isProcessRunning(child)) {
@@ -145,10 +166,10 @@ function waitForProcessClose(child: ChildProcess, timeoutMs: number): Promise<bo
 
   return new Promise((resolve) => {
     const onClose = (): void => {
-      clearTimeout(timeout);
+      clearProcessTimeout(timeout);
       resolve(true);
     };
-    const timeout = setTimeout(() => {
+    const timeout = setProcessTimeout(() => {
       child.removeListener("close", onClose);
       resolve(!isProcessRunning(child));
     }, timeoutMs);

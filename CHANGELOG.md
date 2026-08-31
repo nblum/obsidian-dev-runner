@@ -4,6 +4,17 @@ All notable changes to Dev Runner are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Added a self-contained Dev Runner teaser image for the Obsidian community listing.
+
+### Fixed
+
+- Hosted the README installation badge locally and linked it to the Dev Runner community plugin page.
+- Removed unnecessary shell quoting from package-script context-menu labels.
+- Improved popout-window compatibility for process timers and reload coordination.
+- Added searchable declarative settings on Obsidian 1.13 while retaining the legacy settings UI for older versions.
+
 ## [0.1.3] - 2026-08-31
 
 ### Added
