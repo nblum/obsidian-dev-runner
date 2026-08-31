@@ -20,3 +20,7 @@ All notable changes to Dev Runner are documented here.
 
 - Prevented equivalent package-menu and README commands from starting duplicate processes.
 - Synchronized README Play and Stop buttons with the shared process state.
+- Hardened process shutdown across plugin reloads, PID reuse, delayed exits, and transient Windows stop failures.
+- Bounded session history, released completed child-process references, and retained unchanged sidebar cards.
+- Corrected wide README fence parsing and validated package-manager dropdown values.
+- Reused shell resolution for trust decisions and displayed safely quoted package commands.

@@ -1,6 +1,31 @@
 import { createHash } from "node:crypto";
 
-const EXECUTABLE_FENCE_PATTERN = /^(`{3,}|~{3,})(?:bash|sh|shell|zsh)[^\n]*\n([\s\S]*?)^\1\s*$/gim;
+interface ExecutableFence {
+  length: number;
+  marker: "`" | "~";
+}
+
+/** Parses a supported README opening fence without accepting language prefixes. */
+function readExecutableFence(line: string): ExecutableFence | null {
+  const match = line.match(/^(`{3,}|~{3,})(?:bash|sh|shell|zsh)(?:\s+.*)?$/i);
+  const fence = match?.[1];
+  if (fence === undefined) {
+    return null;
+  }
+  return {
+    length: fence.length,
+    marker: fence[0] as "`" | "~"
+  };
+}
+
+/** Checks whether a line closes the matching fence with sufficient width. */
+function isClosingFence(line: string, openingFence: ExecutableFence): boolean {
+  const match = line.match(/^(`+|~+)\s*$/);
+  const fence = match?.[1];
+  return fence !== undefined
+    && fence[0] === openingFence.marker
+    && fence.length >= openingFence.length;
+}
 
 /** Returns whether a vault path points to a README Markdown file. */
 export function isReadmePath(sourcePath: string): boolean {
@@ -29,7 +54,24 @@ export function createReadmeCommandLabel(command: string, fallbackLabel = "Comma
 
 /** Extracts executable shell command blocks from README Markdown source. */
 export function parseExecutableReadmeCommands(contents: string): string[] {
-  return [...contents.matchAll(EXECUTABLE_FENCE_PATTERN)]
-    .map((match) => normalizeReadmeCommand(match[2] ?? ""))
-    .filter((command) => command.length > 0);
+  const lines = contents.replace(/\r\n?/g, "\n").split("\n");
+  const commands: string[] = [];
+  for (let openingIndex = 0; openingIndex < lines.length; openingIndex += 1) {
+    const openingFence = readExecutableFence(lines[openingIndex] ?? "");
+    if (openingFence === null) {
+      continue;
+    }
+    for (let closingIndex = openingIndex + 1; closingIndex < lines.length; closingIndex += 1) {
+      if (!isClosingFence(lines[closingIndex] ?? "", openingFence)) {
+        continue;
+      }
+      const command = normalizeReadmeCommand(lines.slice(openingIndex + 1, closingIndex).join("\n"));
+      if (command.length > 0) {
+        commands.push(command);
+      }
+      openingIndex = closingIndex;
+      break;
+    }
+  }
+  return commands;
 }

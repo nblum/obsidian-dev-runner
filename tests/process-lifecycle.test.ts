@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  MAX_PROCESS_HISTORY_ENTRIES,
   resolveFinalProcessStatus,
   selectHistoryEntriesToEvict
 } from "../src/process-lifecycle.ts";
@@ -20,4 +21,9 @@ test("evicts the oldest history entries with deterministic tie breaking", () => 
 
   assert.deepEqual(selectHistoryEntriesToEvict(entries, 1), ["old-a", "old-b"]);
   assert.deepEqual(selectHistoryEntriesToEvict(entries, 10), []);
+  const defaultLimitEntries = Array.from(
+    { length: MAX_PROCESS_HISTORY_ENTRIES + 1 },
+    (_, index) => ({ id: String(index).padStart(2, "0"), finishedAt: index })
+  );
+  assert.deepEqual(selectHistoryEntriesToEvict(defaultLimitEntries), ["00"]);
 });

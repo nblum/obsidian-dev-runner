@@ -119,6 +119,11 @@ function isProcessStopping(runningProcess: ManagedProcessRecord): boolean {
   return runningProcess.stopping;
 }
 
+/** Reads mutable completion state again after asynchronous process termination. */
+function isProcessFinished(runningProcess: ManagedProcessRecord): boolean {
+  return runningProcess.finalStatus !== null;
+}
+
 const SHUTDOWN_COORDINATOR_KEY = Symbol.for("obsidian-dev-runner.shutdown");
 
 /** Returns the renderer-wide shutdown coordinator shared across plugin reloads. */
@@ -126,7 +131,10 @@ function getShutdownCoordinator(): ShutdownCoordinator {
   const globalRecord = globalThis as unknown as Record<symbol, unknown>;
   const existing = globalRecord[SHUTDOWN_COORDINATOR_KEY];
   if (typeof existing === "object" && existing !== null && "pending" in existing) {
-    return existing as ShutdownCoordinator;
+    const pending = existing.pending;
+    if (pending === null || pending instanceof Promise) {
+      return existing as ShutdownCoordinator;
+    }
   }
   const coordinator: ShutdownCoordinator = { pending: null };
   globalRecord[SHUTDOWN_COORDINATOR_KEY] = coordinator;
@@ -280,10 +288,11 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
     try {
       await stopBackgroundProcess(child);
     } catch (error) {
-      if (this.runningScripts.get(key) === runningScript) {
-        runningScript.stopping = false;
-        this.notifyProcessChanges();
+      if (this.runningScripts.get(key) !== runningScript || isProcessFinished(runningScript)) {
+        return;
       }
+      runningScript.stopping = false;
+      this.notifyProcessChanges();
       console.error("Dev Runner konnte das Skript nicht beenden.", error);
       new Notice(this.translate("notice.processStopFailed", { label: runningScript.label }));
     }
@@ -347,11 +356,12 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
     try {
       await stopBackgroundProcess(child);
     } catch (error) {
-      if (this.runningScripts.get(key) === runningScript) {
-        runningScript.stopping = false;
-        runningScript.restartDefinition = null;
-        this.notifyProcessChanges();
+      if (this.runningScripts.get(key) !== runningScript || isProcessFinished(runningScript)) {
+        return;
       }
+      runningScript.stopping = false;
+      runningScript.restartDefinition = null;
+      this.notifyProcessChanges();
       console.error("Dev Runner konnte das Skript nicht neu starten.", error);
       new Notice(this.translate("notice.processRestartFailed", { label: runningScript.label }));
     }
@@ -710,10 +720,11 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
     try {
       await stopBackgroundProcess(child);
     } catch (error) {
-      if (this.readmeCommands.get(key) === runningCommand) {
-        runningCommand.stopping = false;
-        this.notifyProcessChanges();
+      if (this.readmeCommands.get(key) !== runningCommand || isProcessFinished(runningCommand)) {
+        return;
       }
+      runningCommand.stopping = false;
+      this.notifyProcessChanges();
       console.error("Dev Runner konnte den README-Befehlsblock nicht beenden.", error);
       new Notice(this.translate("notice.processStopFailed", { label: runningCommand.label }));
     }
@@ -759,11 +770,12 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
     try {
       await stopBackgroundProcess(child);
     } catch (error) {
-      if (this.readmeCommands.get(key) === runningCommand) {
-        runningCommand.stopping = false;
-        runningCommand.restarting = false;
-        this.notifyProcessChanges();
+      if (this.readmeCommands.get(key) !== runningCommand || isProcessFinished(runningCommand)) {
+        return;
       }
+      runningCommand.stopping = false;
+      runningCommand.restarting = false;
+      this.notifyProcessChanges();
       console.error("Dev Runner konnte den README-Befehlsblock nicht neu starten.", error);
       new Notice(this.translate("notice.processRestartFailed", { label: runningCommand.label }));
     }

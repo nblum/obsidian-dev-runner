@@ -25,7 +25,8 @@ export function selectHistoryEntriesToEvict(
 ): string[] {
   const overflow = Math.max(0, entries.length - Math.max(0, limit));
   return [...entries]
-    .sort((left, right) => left.finishedAt - right.finishedAt || left.id.localeCompare(right.id))
+    .sort((left, right) => left.finishedAt - right.finishedAt
+      || (left.id < right.id ? -1 : left.id > right.id ? 1 : 0))
     .slice(0, overflow)
     .map((entry) => entry.id);
 }

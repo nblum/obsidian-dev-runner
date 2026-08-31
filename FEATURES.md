@@ -32,7 +32,9 @@ output, termination, and security decisions visible inside Obsidian.
 - The same normalized working directory and literal argument vector can have at most one active process.
 - Compound or multi-line shell commands remain separate identities and are never treated as direct package launches.
 - POSIX commands use detached process groups so the complete descendant tree can receive termination signals.
+- POSIX process-group signals verify the original OS process-start identity before targeting a PID.
 - Windows commands remain attached and are stopped with `taskkill /T /F`.
+- A transient Windows `taskkill` failure is retried before the stop action fails.
 - Stop first requests graceful POSIX termination and escalates after a bounded timeout.
 - Plugin unload and normal application shutdown stop every active process without opening the sidebar.
 - Start, stop, and restart interactions open the process sidebar by default when the setting is enabled.
@@ -40,15 +42,18 @@ output, termination, and security decisions visible inside Obsidian.
 ## Process view and history
 
 - Active entries show starting, running, stopping, or restarting state.
-- Finished entries show completed, failed, or stopped state and remain until plugin unload.
+- The 50 most recent finished entries show completed, failed, or stopped state and remain until plugin unload.
+- Finished entries release their `ChildProcess` references and older history entries are evicted deterministically.
 - Entries display a label, working directory, PID when available, and the latest combined output.
 - Output is normalized for terminal control sequences and bounded to 12,000 characters per entry.
 - Restart revalidates and reconfirms the current command before replacing the previous history entry.
 - Ordering is deterministic for stable rendering.
+- Process cards are keyed and unchanged cards are retained across output refreshes.
 
 ## Security
 
 - Untrusted commands require an explicit confirmation that shows command and working directory.
+- Package-manager invocations are displayed with platform-appropriate argument quoting.
 - A remembered approval hashes the exact command, directory, execution environment, project fingerprint, and source name.
 - Package fingerprints include `package.json` and available npm, pnpm, Yarn, and Bun lockfiles.
 - Project changes during an open warning invalidate the decision and require confirmation again.

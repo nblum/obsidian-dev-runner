@@ -34,7 +34,7 @@ the background, captures its latest output, and provides stop, restart, and sess
 - captures a bounded tail of combined standard output and standard error
 - prevents the same command and working directory from running twice across package menus and README buttons
 - stops complete process trees and restarts commands with their original working directory
-- retains completed, failed, and stopped runs for the current plugin session
+- retains the 50 most recent completed, failed, and stopped runs for the current plugin session
 - provides a German and English interface with automatic Obsidian-language detection
 - warns before executing untrusted commands and supports fingerprinted command approvals
 - terminates active processes when the plugin unloads or Obsidian closes normally
@@ -72,12 +72,12 @@ shared process. Compound or multi-line shell blocks retain their own identity be
 
 ## Process sidebar
 
-The sidebar groups entries into active processes and session history. Each entry shows its status, process ID,
+The sidebar groups entries into active processes and a 50-entry session history. Each entry shows its status, process ID,
 working directory, and up to 12,000 characters of recent output. Active processes can be stopped or restarted;
 finished entries can be restarted after the source command has been revalidated.
 
 History is intentionally in-memory. Reloading the plugin or closing Obsidian clears finished entries and stops active
-processes.
+processes; a reloaded plugin waits for the previous instance's shutdown attempt before accepting new commands.
 
 ## Security
 

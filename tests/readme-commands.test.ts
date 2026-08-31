@@ -47,7 +47,7 @@ test("normalizes Windows line endings in README command blocks", () => {
   assert.deepEqual(parseExecutableReadmeCommands(contents), ["npm install\nnpm run dev"]);
 });
 
-test("requires a closing README fence with the original delimiter width", () => {
+test("requires a closing README fence at least as wide as its opening fence", () => {
   const contents = [
     "````bash",
     "printf '%s\\n' '```'",
@@ -55,4 +55,5 @@ test("requires a closing README fence with the original delimiter width", () => 
   ].join("\n");
 
   assert.deepEqual(parseExecutableReadmeCommands(contents), ["printf '%s\\n' '```'"]);
+  assert.deepEqual(parseExecutableReadmeCommands("```sh\necho ok\n````"), ["echo ok"]);
 });
