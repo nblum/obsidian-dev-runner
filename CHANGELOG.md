@@ -8,6 +8,10 @@ All notable changes to Dev Runner are documented here.
 
 - Added an atomic release task that synchronizes metadata, validates, commits, tags, and pushes a release.
 
+### Fixed
+
+- Prevented conflicting historical tags from blocking preparation of a new release.
+
 ## [0.1.2] - 2026-08-31
 
 ### Fixed

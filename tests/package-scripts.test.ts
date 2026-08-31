@@ -12,15 +12,19 @@ import {
 
 interface ReleaseScriptModule {
   updateChangelog(contents: string, version: string, date: string): string;
+  validateRemoteTagLookup(status: number | null, stderr: string, version: string): void;
 }
 
 /** Loads the release helper through its runtime module boundary. */
 async function loadReleaseScript(): Promise<ReleaseScriptModule> {
   const moduleUrl = new URL("../scripts/release.mjs", import.meta.url).href;
   const imported: unknown = await import(moduleUrl);
-  if (typeof imported !== "object" || imported === null || !("updateChangelog" in imported)
-    || typeof imported.updateChangelog !== "function") {
-    throw new Error("Release script does not export updateChangelog.");
+  if (typeof imported !== "object" || imported === null
+    || !("updateChangelog" in imported)
+    || typeof imported.updateChangelog !== "function"
+    || !("validateRemoteTagLookup" in imported)
+    || typeof imported.validateRemoteTagLookup !== "function") {
+    throw new Error("Release script does not export its tested helpers.");
   }
   return imported as ReleaseScriptModule;
 }
@@ -85,5 +89,19 @@ test("promotes Unreleased changelog notes into a dated release", async () => {
   assert.throws(
     () => releaseScript.updateChangelog("# Changelog\n\n## [Unreleased]\n\n## [0.1.2] - 2026-08-31\n", "0.1.3", "2026-09-01"),
     /must contain release notes/
+  );
+});
+
+test("distinguishes an available remote tag from conflicts and lookup failures", async () => {
+  const releaseScript = await loadReleaseScript();
+
+  assert.doesNotThrow(() => releaseScript.validateRemoteTagLookup(2, "", "0.1.3"));
+  assert.throws(
+    () => releaseScript.validateRemoteTagLookup(0, "", "0.1.3"),
+    /already exists on origin/
+  );
+  assert.throws(
+    () => releaseScript.validateRemoteTagLookup(128, "network unavailable", "0.1.3"),
+    /network unavailable/
   );
 });

@@ -48,15 +48,6 @@ function runCommand(command, args, options = {}) {
   return capture ? result.stdout.trim() : "";
 }
 
-/** Returns whether one command exits successfully without printing output. */
-function commandSucceeds(command, args) {
-  const result = spawnSync(command, args, {
-    cwd: repositoryRoot,
-    stdio: "ignore"
-  });
-  return result.status === 0;
-}
-
 /** Parses a strict three-component release version. */
 function parseVersion(version) {
   const match = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
@@ -101,6 +92,55 @@ export function updateChangelog(contents, version, date) {
   return `${beforeHeading}${unreleasedHeading}\n\n## [${version}] - ${date}\n\n${notes}\n\n${previousReleases}`;
 }
 
+/** Validates the result of looking up an exact tag on the remote. */
+export function validateRemoteTagLookup(status, stderr, version) {
+  if (status === 2) {
+    return;
+  }
+  if (status === 0) {
+    throw new Error(`Tag ${version} already exists on origin.`);
+  }
+  const detail = stderr.trim();
+  throw new Error(detail.length > 0
+    ? `Could not check tag ${version} on origin: ${detail}`
+    : `Could not check tag ${version} on origin; git exited with code ${String(status)}.`);
+}
+
+/** Rejects a target version that already has a local tag. */
+function assertLocalTagAvailable(version) {
+  const result = spawnSync(
+    "git",
+    ["show-ref", "--verify", "--quiet", `refs/tags/${version}`],
+    { cwd: repositoryRoot, stdio: "ignore" }
+  );
+  if (result.error !== undefined) {
+    throw result.error;
+  }
+  if (result.status === 0) {
+    throw new Error(`Tag ${version} already exists locally.`);
+  }
+  if (result.status !== 1) {
+    throw new Error(`Could not check local tag ${version}; git exited with code ${String(result.status)}.`);
+  }
+}
+
+/** Rejects a target version that already has a remote tag. */
+function assertRemoteTagAvailable(version) {
+  const result = spawnSync(
+    "git",
+    ["ls-remote", "--exit-code", "--tags", "origin", `refs/tags/${version}`],
+    {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    }
+  );
+  if (result.error !== undefined) {
+    throw result.error;
+  }
+  validateRemoteTagLookup(result.status, result.stderr, version);
+}
+
 /** Updates every release metadata file to one synchronized version. */
 function updateReleaseFiles(version) {
   const manifest = readJson("manifest.json");
@@ -143,7 +183,8 @@ function prepareRepository(version) {
   if (runCommand("git", ["status", "--porcelain"], { capture: true }).length > 0) {
     throw new Error("Working tree must be clean before creating a release.");
   }
-  runCommand("git", ["fetch", "origin", "--tags"]);
+  // Historical tag conflicts must not block synchronization of the release branch.
+  runCommand("git", ["fetch", "--no-tags", "origin"]);
   const branch = runCommand("git", ["branch", "--show-current"], { capture: true });
   if (branch.length === 0) {
     throw new Error("Release must run from a branch, not a detached HEAD.");
@@ -164,9 +205,8 @@ function prepareRepository(version) {
   if (divergence !== "0\t0" && divergence !== "0 0") {
     throw new Error(`Branch must match ${upstream} before releasing; divergence is ${divergence}.`);
   }
-  if (commandSucceeds("git", ["show-ref", "--verify", "--quiet", `refs/tags/${version}`])) {
-    throw new Error(`Tag ${version} already exists.`);
-  }
+  assertLocalTagAvailable(version);
+  assertRemoteTagAvailable(version);
   return branch;
 }
 
