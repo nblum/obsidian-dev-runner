@@ -39,6 +39,9 @@ The repository should live at `.obsidian/plugins/dev-runner/` in a test vault. A
 `main.js` is generated and intentionally ignored by Git. Releases attach the generated bundle alongside
 `manifest.json` and `styles.css`.
 
+Manifest validation enforces the `dev-runner` directory name for installations below `.obsidian/plugins/`. Repository
+checkouts may use the GitHub repository name or another local development directory.
+
 ## Working style
 
 - Use strict TypeScript and explicit types at module boundaries.

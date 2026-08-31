@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { isObsidianPluginInstallPath } from "./manifest-paths.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.join(scriptDirectory, "..");
@@ -30,7 +31,9 @@ function validateManifest() {
 
   assertValid(typeof manifest.id === "string" && /^[a-z0-9-]+$/.test(manifest.id), "manifest.json has an invalid id");
   assertValid(!manifest.id.includes("obsidian") && !manifest.id.endsWith("plugin"), "manifest.json id must stay short and must not contain obsidian or end with plugin");
-  assertValid(path.basename(repositoryRoot) === manifest.id, "plugin directory must match manifest.json id");
+  if (isObsidianPluginInstallPath(repositoryRoot)) {
+    assertValid(path.basename(repositoryRoot) === manifest.id, "installed plugin directory must match manifest.json id");
+  }
   assertValid(typeof manifest.name === "string" && manifest.name.length > 0, "manifest.json name must not be empty");
   assertValid(!/obsidian|plugin/i.test(manifest.name), "manifest.json name must not contain Obsidian or Plugin");
   assertValid(typeof manifest.version === "string" && /^\d+\.\d+\.\d+$/.test(manifest.version), "manifest.json version must use x.y.z format");
