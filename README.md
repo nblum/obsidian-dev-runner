@@ -1,10 +1,12 @@
 # Dev Runner
 
-[![Add to Obsidian](https://img.shields.io/badge/Add_to_Obsidian-7C3AED?logo=obsidian&logoColor=white)](obsidian://show-plugin?id=dev-runner)
+[![Add to Obsidian](assets/add-to-obsidian.svg)](https://community.obsidian.md/plugins/dev-runner)
 [![CI](https://github.com/nblum/obsidian-dev-runner/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nblum/obsidian-dev-runner/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/nblum/obsidian-dev-runner?label=release)](https://github.com/nblum/obsidian-dev-runner/releases)
 [![License: MIT](https://img.shields.io/github/license/nblum/obsidian-dev-runner)](LICENSE)
 [![Star on GitHub](https://img.shields.io/github/stars/nblum/obsidian-dev-runner?logo=github&label=star)](https://github.com/nblum/obsidian-dev-runner)
+
+![Dev Runner for Obsidian](assets/main-image.webp)
 
 Run package scripts and executable README command blocks directly from Obsidian. Dev Runner keeps each command in
 the background, captures its latest output, and provides stop, restart, and session-history controls in a sidebar.
@@ -51,6 +53,10 @@ Dev Runner is desktop-only because it uses the local filesystem and Node.js chil
 
 The package script runs with the selected folder as its working directory. Selecting its active folder-menu entry
 stops the complete process tree.
+
+
+![Dev Runner for Obsidian](assets/dev-runner-overview.webp)
+
 
 ## README commands
 
@@ -109,10 +115,8 @@ feedback.
 
 Dev Runner requires Obsidian `1.8.7` or later.
 
-Once Dev Runner is listed in the community plugin directory, use the **Add to Obsidian** button above to open it
-directly in Obsidian. If the browser does not handle the `obsidian://` link, open the
-[official Obsidian plugin page](https://obsidian.md/plugins?id=dev-runner) or search for `Dev Runner` under
-**Settings → Community plugins → Browse**.
+Use the **Add to Obsidian** button above to open the Dev Runner community plugin page. To install the plugin, search
+for `Dev Runner` under **Settings → Community plugins → Browse** in Obsidian.
 
 For local development, place this repository at `.obsidian/plugins/dev-runner/`, install dependencies, and build the
 bundle:
