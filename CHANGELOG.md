@@ -4,6 +4,8 @@ All notable changes to Dev Runner are documented here.
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-08-31
+
 ### Added
 
 - Added a self-contained Dev Runner teaser image for the Obsidian community listing.
