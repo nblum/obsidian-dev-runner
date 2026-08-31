@@ -1,0 +1,9 @@
+{
+  "id": "dev-runner",
+  "name": "Dev Runner",
+  "version": "0.1.0",
+  "minAppVersion": "1.8.7",
+  "description": "Run and manage package scripts and README shell commands in the background.",
+  "author": "Nico Blum",
+  "isDesktopOnly": true
+}
