@@ -43,6 +43,7 @@ test("keeps Windows processes attached for taskkill tree termination", () => {
       cwd: "C:\\vault",
       detached: false,
       stdio: ["ignore", "pipe", "pipe"],
+      windowsVerbatimArguments: true,
       windowsHide: true
     }
   });
@@ -66,6 +67,17 @@ test("creates a shell launch for multi-line README commands", () => {
   assert.equal(resolveShellExecutable("linux", "  /bin/zsh  "), "/bin/zsh");
   assert.equal(resolveShellExecutable("linux", ""), "/bin/bash");
   assert.equal(resolveShellExecutable("win32", "/bin/zsh"), "cmd.exe");
+  assert.deepEqual(createShellProcessLaunch("npm run dev", "C:\\vault", "win32"), {
+    command: "cmd.exe",
+    args: ["/d", "/c", "npm run dev"],
+    options: {
+      cwd: "C:\\vault",
+      detached: false,
+      stdio: ["ignore", "pipe", "pipe"],
+      windowsVerbatimArguments: true,
+      windowsHide: true
+    }
+  });
 });
 
 test("exposes background process output through pipes", async () => {

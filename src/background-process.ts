@@ -22,6 +22,7 @@ export interface BackgroundProcessLaunch {
     cwd: string;
     detached: boolean;
     stdio: ["ignore", "pipe", "pipe"];
+    windowsVerbatimArguments?: boolean;
     windowsHide: boolean;
   };
 }
@@ -51,6 +52,8 @@ export function createBackgroundProcessLaunch(
         cwd,
         detached: false,
         stdio: ["ignore", "pipe", "pipe"],
+        // cmd.exe must receive its command string without Node's C-runtime escaping.
+        windowsVerbatimArguments: true,
         windowsHide: true
       }
     };
@@ -84,6 +87,8 @@ export function createShellProcessLaunch(
         cwd,
         detached: false,
         stdio: ["ignore", "pipe", "pipe"],
+        // Preserve shell quoting because cmd.exe does not interpret backslash escapes.
+        windowsVerbatimArguments: true,
         windowsHide: true
       }
     };
