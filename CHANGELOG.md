@@ -4,6 +4,8 @@ All notable changes to Dev Runner are documented here.
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-09-01
+
 ### Added
 
 - Added per-file `dev-runner: true` frontmatter opt-in, including Obsidian text properties, and an opt-in setting for
