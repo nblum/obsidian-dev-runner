@@ -13,8 +13,15 @@ concurrency:
 
 jobs:
   quality:
-    name: Lint, test, and build
-    runs-on: ubuntu-latest
+    name: Lint, test, and build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
 
     steps:
       - name: Check out repository

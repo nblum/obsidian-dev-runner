@@ -70,9 +70,9 @@ test("creates a shell launch for multi-line README commands", () => {
 
 test("exposes background process output through pipes", async () => {
   const launch = createBackgroundProcessLaunch(
-    { executable: process.execPath, args: ["-e", "console.log('ready')"] },
+    { executable: "node", args: ["-e", "console.log('ready')"] },
     process.cwd(),
-    "linux"
+    process.platform
   );
   const child = spawnBackgroundProcess(launch);
   const chunks: string[] = [];
@@ -86,16 +86,33 @@ test("exposes background process output through pipes", async () => {
   assert.equal(chunks.join(""), "ready\n");
 });
 
-test("stops a detached POSIX background process", async () => {
+test("stops a detached POSIX background process", { skip: process.platform === "win32" }, async () => {
   const launch = createBackgroundProcessLaunch(
     { executable: process.execPath, args: ["-e", "setInterval(() => {}, 1_000)"] },
     process.cwd(),
-    "linux"
+    process.platform
   );
   const child = spawnBackgroundProcess(launch);
   await once(child, "spawn");
 
-  await stopBackgroundProcess(child, "linux", 1_000);
+  await stopBackgroundProcess(child, process.platform, 1_000);
 
   assert.equal(child.signalCode, "SIGTERM");
+});
+
+test("stops a Windows background process tree", { skip: process.platform !== "win32" }, async () => {
+  const launch = createBackgroundProcessLaunch(
+    { executable: "node", args: ["-e", "setInterval(() => {}, 1_000)"] },
+    process.cwd(),
+    "win32"
+  );
+  const child = spawnBackgroundProcess(launch);
+  await once(child, "spawn");
+
+  await stopBackgroundProcess(child, "win32", 1_000);
+  if (child.exitCode === null && child.signalCode === null) {
+    await once(child, "close");
+  }
+
+  assert.equal(child.exitCode !== null || child.signalCode !== null, true);
 });
