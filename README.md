@@ -179,3 +179,4 @@ development checklist.
 Add notes below `## [Unreleased]` in `CHANGELOG.md`, commit and synchronize all pending work, then run
 `npm run release -- <x.y.z>`. The task synchronizes release metadata, runs all checks, commits, tags, and atomically
 pushes the branch and tag. The tag workflow builds and publishes the three required assets with artifact attestations.
+Publishing starts only after linting, tests, and production builds pass on Linux, macOS, and Windows.

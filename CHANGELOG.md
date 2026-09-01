@@ -7,6 +7,7 @@ All notable changes to Dev Runner are documented here.
 ### Fixed
 
 - Preserved `cmd.exe` arguments verbatim so Windows commands execute correctly and expose their output.
+- Gated GitHub release creation on successful Linux, macOS, and Windows CI jobs.
 
 ## [0.1.5] - 2026-09-01
 
