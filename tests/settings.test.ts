@@ -12,6 +12,7 @@ test("uses secure interaction defaults for missing settings", () => {
 test("loads persisted warning and sidebar options", () => {
   const settings = readDevRunnerSettings({
     disableSecurityWarnings: true,
+    enableAllMarkdownFiles: true,
     language: "en",
     openProcessViewOnInteraction: false,
     openReadmesInPreview: false,
@@ -20,6 +21,7 @@ test("loads persisted warning and sidebar options", () => {
   });
 
   assert.equal(settings.disableSecurityWarnings, true);
+  assert.equal(settings.enableAllMarkdownFiles, true);
   assert.equal(settings.language, "en");
   assert.equal(settings.openProcessViewOnInteraction, false);
   assert.equal(settings.openReadmesInPreview, false);
@@ -29,12 +31,14 @@ test("loads persisted warning and sidebar options", () => {
 test("rejects invalid boolean option values", () => {
   const settings = readDevRunnerSettings({
     disableSecurityWarnings: "true",
+    enableAllMarkdownFiles: "yes",
     language: "fr",
     openProcessViewOnInteraction: 0,
     openReadmesInPreview: "yes"
   });
 
   assert.equal(settings.disableSecurityWarnings, false);
+  assert.equal(settings.enableAllMarkdownFiles, false);
   assert.equal(settings.language, "auto");
   assert.equal(settings.openProcessViewOnInteraction, true);
   assert.equal(settings.openReadmesInPreview, true);

@@ -21,6 +21,7 @@ const GITHUB_FEEDBACK_URL = `${GITHUB_REPOSITORY_URL}/issues/new`;
 
 export interface DevRunnerSettingsHost {
   preferences: DevRunnerSettings;
+  refreshMarkdownViews(): void;
   saveSettings(): Promise<void>;
   translate(key: string, variables?: TranslationVariables): string;
   updateLanguage(preference: string): void;
@@ -96,6 +97,15 @@ export class DevRunnerSettingTab extends PluginSettingTab {
         }
       },
       {
+        name: this.plugin.translate("settings.markdownAll.name"),
+        desc: this.plugin.translate("settings.markdownAll.description"),
+        control: {
+          type: "toggle",
+          key: "enableAllMarkdownFiles",
+          defaultValue: DEFAULT_SETTINGS.enableAllMarkdownFiles
+        }
+      },
+      {
         name: this.plugin.translate("settings.warnings.name"),
         desc: this.plugin.translate("settings.warnings.description"),
         control: {
@@ -126,6 +136,7 @@ export class DevRunnerSettingTab extends PluginSettingTab {
   override getControlValue(key: string): unknown {
     if (key === "language"
       || key === "packageManager"
+      || key === "enableAllMarkdownFiles"
       || key === "openProcessViewOnInteraction"
       || key === "openReadmesInPreview"
       || key === "disableSecurityWarnings") {
@@ -150,11 +161,15 @@ export class DevRunnerSettingTab extends PluginSettingTab {
       return;
     }
     if ((key === "openProcessViewOnInteraction"
+      || key === "enableAllMarkdownFiles"
       || key === "openReadmesInPreview"
       || key === "disableSecurityWarnings")
       && typeof value === "boolean") {
       this.plugin.preferences[key] = value;
       await this.plugin.saveSettings();
+      if (key === "enableAllMarkdownFiles") {
+        this.plugin.refreshMarkdownViews();
+      }
       return;
     }
     throw new Error(`Invalid value for Dev Runner setting ${key}.`);
@@ -227,6 +242,17 @@ export class DevRunnerSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.preferences.openReadmesInPreview = value;
           await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName(this.plugin.translate("settings.markdownAll.name"))
+      .setDesc(this.plugin.translate("settings.markdownAll.description"))
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.preferences.enableAllMarkdownFiles)
+        .onChange(async (value) => {
+          this.plugin.preferences.enableAllMarkdownFiles = value;
+          await this.plugin.saveSettings();
+          this.plugin.refreshMarkdownViews();
         }));
 
     new Setting(containerEl)

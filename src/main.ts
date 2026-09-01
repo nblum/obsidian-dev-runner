@@ -7,7 +7,9 @@ import {
   Notice,
   Plugin,
   TFolder,
+  getFrontMatterInfo,
   moment,
+  parseYaml,
   type Command,
   type Menu,
   type Tasks,
@@ -36,13 +38,14 @@ import {
   createShellProcessIdentity
 } from "./process-identity.ts";
 import {
+  areMarkdownCommandsEnabled,
   createReadmeCommandKey,
   createReadmeCommandLabel,
-  isReadmePath,
+  getDevRunnerFrontmatterValue,
   parseExecutableReadmeCommands
 } from "./readme-command-model.ts";
 import {
-  addReadmeCommandButtons,
+  addMarkdownCommandButtons,
   type ReadmeCommandButtonState,
   type ReadmeCommandDefinition
 } from "./readme-commands.ts";
@@ -173,7 +176,10 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
     await this.loadSettings();
     this.registerView(PROCESS_VIEW_TYPE, (leaf) => new DevRunnerProcessView(leaf, this));
     this.registerMarkdownPostProcessor((element, context) => {
-      addReadmeCommandButtons(element, context, {
+      if (!this.areMarkdownCommandsEnabled(context.sourcePath, context.frontmatter)) {
+        return;
+      }
+      addMarkdownCommandButtons(element, context, {
         getState: (definition) => this.getReadmeCommandButtonState(definition),
         runCommand: (definition) => { void this.runReadmeCommand(definition); },
         stopCommand: (definition) => { void this.stopReadmeCommandDefinition(definition); },
@@ -182,10 +188,10 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
       });
     });
     this.registerEvent(this.app.workspace.on("active-leaf-change", (leaf) => {
-      this.openReadmeInPreview(leaf);
+      this.openEnabledMarkdownInPreview(leaf);
     }));
     this.app.workspace.onLayoutReady(() => {
-      this.openReadmeInPreview(this.app.workspace.getMostRecentLeaf());
+      this.openEnabledMarkdownInPreview(this.app.workspace.getMostRecentLeaf());
     });
     this.ribbonIconEl = this.addRibbonIcon("play", this.translate("ribbon.showProcesses"), () => {
       this.openProcessView();
@@ -638,7 +644,8 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
     const identityKey = createShellProcessIdentity(directoryPath, definition.command);
     const label = createReadmeCommandLabel(
       definition.command,
-      this.translate("readme.commandFallback")
+      this.translate("readme.commandFallback"),
+      definition.sourcePath
     );
     const existingProcess = this.activeProcessesByIdentity.get(identityKey);
     if (existingProcess !== undefined) {
@@ -839,7 +846,8 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
       directoryPath,
       label: createReadmeCommandLabel(
         definition.command,
-        this.translate("readme.commandFallback")
+        this.translate("readme.commandFallback"),
+        definition.sourcePath
       )
     }, (key, variables) => this.translate(key, variables));
     if (!decision.confirmed || this.resolveReadmeCommandDirectory(definition) === null) {
@@ -866,7 +874,7 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
     return true;
   }
 
-  /** Resolves and validates the project directory for a rendered README command. */
+  /** Resolves and validates the project directory for a rendered Markdown command. */
   private resolveReadmeCommandDirectory(definition: ReadmeCommandDefinition): string | null {
     const directoryPath = this.getReadmeCommandDirectory(definition);
     if (directoryPath === null) {
@@ -876,12 +884,24 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
     if (!(adapter instanceof FileSystemAdapter)) {
       return null;
     }
-    const readmePath = adapter.getFullPath(definition.sourcePath);
+    const markdownPath = adapter.getFullPath(definition.sourcePath);
     try {
-      const commands = parseExecutableReadmeCommands(readFileSync(readmePath, "utf8"));
+      const contents = readFileSync(markdownPath, "utf8");
+      const frontmatterInfo = getFrontMatterInfo(contents);
+      const parsedFrontmatter: unknown = frontmatterInfo.exists
+        ? parseYaml(frontmatterInfo.frontmatter)
+        : undefined;
+      if (!areMarkdownCommandsEnabled(
+        definition.sourcePath,
+        this.preferences.enableAllMarkdownFiles,
+        getDevRunnerFrontmatterValue(parsedFrontmatter)
+      )) {
+        return null;
+      }
+      const commands = parseExecutableReadmeCommands(contents);
       return commands.includes(definition.command) ? directoryPath : null;
     } catch (error) {
-      console.error("Dev Runner konnte die README nicht prüfen.", error);
+      console.error("Dev Runner konnte die Markdown-Datei nicht prüfen.", error);
       return null;
     }
   }
@@ -1132,8 +1152,8 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
     }
   }
 
-  /** Switches newly activated README Markdown views to reading mode when enabled. */
-  private openReadmeInPreview(leaf: WorkspaceLeaf | null): void {
+  /** Switches newly activated command-enabled Markdown views to reading mode. */
+  private openEnabledMarkdownInPreview(leaf: WorkspaceLeaf | null): void {
     if (!this.preferences.openReadmesInPreview || leaf === null) {
       return;
     }
@@ -1141,7 +1161,7 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
       return;
     }
     const sourcePath = leaf.view.file?.path;
-    if (sourcePath === undefined || !isReadmePath(sourcePath)) {
+    if (sourcePath === undefined || !this.areMarkdownCommandsEnabled(sourcePath)) {
       return;
     }
 
@@ -1153,8 +1173,28 @@ export default class DevRunnerPlugin extends Plugin implements ProcessViewHost {
         mode: "preview"
       }
     }).catch((error: unknown) => {
-      console.error("Dev Runner konnte die README nicht im Lesemodus öffnen.", error);
+      console.error("Dev Runner konnte die Markdown-Datei nicht im Lesemodus öffnen.", error);
     });
+  }
+
+  /** Checks parsed frontmatter and settings for one rendered Markdown source. */
+  private areMarkdownCommandsEnabled(sourcePath: string, frontmatter?: unknown): boolean {
+    const currentFrontmatter: unknown = frontmatter
+      ?? this.app.metadataCache.getCache(sourcePath)?.frontmatter;
+    return areMarkdownCommandsEnabled(
+      sourcePath,
+      this.preferences.enableAllMarkdownFiles,
+      getDevRunnerFrontmatterValue(currentFrontmatter)
+    );
+  }
+
+  /** Re-renders open reading views after the Markdown command scope changes. */
+  refreshMarkdownViews(): void {
+    for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
+      if (leaf.view instanceof MarkdownView && leaf.view.getMode() === "preview") {
+        leaf.view.previewMode.rerender(true);
+      }
+    }
   }
 
   /** Activates the existing process view or creates it in the right sidebar. */

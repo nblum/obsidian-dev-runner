@@ -4,7 +4,6 @@ import {
   type MarkdownPostProcessorContext
 } from "obsidian";
 import {
-  isReadmePath,
   normalizeReadmeCommand
 } from "./readme-command-model.ts";
 import type { TranslationVariables } from "./i18n.ts";
@@ -27,7 +26,7 @@ export interface ReadmeCommandController {
   translate(key: string, variables?: TranslationVariables): string;
 }
 
-/** Manages one rendered README command button with the Markdown section lifecycle. */
+/** Manages one rendered Markdown command button with the section lifecycle. */
 class ReadmeCommandButton extends MarkdownRenderChild {
   private readonly button: HTMLButtonElement;
   private readonly controller: ReadmeCommandController;
@@ -82,16 +81,12 @@ function getExecutableCodeSelector(): string {
   return EXECUTABLE_LANGUAGES.map((language) => `pre > code.language-${language}`).join(", ");
 }
 
-/** Adds Play buttons to supported shell blocks in a rendered README section. */
-export function addReadmeCommandButtons(
+/** Adds Play buttons to supported shell blocks in an enabled Markdown section. */
+export function addMarkdownCommandButtons(
   containerEl: HTMLElement,
   context: MarkdownPostProcessorContext,
   controller: ReadmeCommandController
 ): void {
-  if (!isReadmePath(context.sourcePath)) {
-    return;
-  }
-
   for (const codeElement of containerEl.querySelectorAll<HTMLElement>(getExecutableCodeSelector())) {
     const pre = codeElement.parentElement;
     const command = normalizeReadmeCommand(codeElement.textContent);

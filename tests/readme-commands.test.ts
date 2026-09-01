@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  areMarkdownCommandsEnabled,
   createReadmeCommandKey,
   createReadmeCommandLabel,
+  getDevRunnerFrontmatterValue,
+  isEnabledDevRunnerValue,
   isReadmePath,
   parseExecutableReadmeCommands
 } from "../src/readme-command-model.ts";
@@ -24,6 +27,31 @@ test("labels README command blocks from their first line", () => {
   assert.equal(createReadmeCommandLabel("npm run build"), "README: npm run build");
   assert.equal(createReadmeCommandLabel("npm install\nnpm run dev"), "README: npm install …");
   assert.equal(createReadmeCommandLabel("", "Befehl"), "README: Befehl");
+  assert.equal(createReadmeCommandLabel("npm test", "Command", "docs/setup.md"), "setup: npm test");
+});
+
+test("reads the Dev Runner value from parsed frontmatter", () => {
+  assert.equal(getDevRunnerFrontmatterValue({ "dev-runner": true }), true);
+  assert.equal(getDevRunnerFrontmatterValue({ "dev-runner": " true " }), " true ");
+  assert.equal(getDevRunnerFrontmatterValue([]), undefined);
+  assert.equal(getDevRunnerFrontmatterValue(null), undefined);
+});
+
+test("accepts boolean and Obsidian text-property opt-in values", () => {
+  assert.equal(isEnabledDevRunnerValue(true), true);
+  assert.equal(isEnabledDevRunnerValue("true"), true);
+  assert.equal(isEnabledDevRunnerValue(" TRUE "), true);
+  assert.equal(isEnabledDevRunnerValue(false), false);
+  assert.equal(isEnabledDevRunnerValue("false"), false);
+});
+
+test("enables README, opted-in, or globally enabled Markdown sources", () => {
+  assert.equal(areMarkdownCommandsEnabled("project/README.md", false, undefined), true);
+  assert.equal(areMarkdownCommandsEnabled("project/commands.md", false, true), true);
+  assert.equal(areMarkdownCommandsEnabled("project/commands.md", false, "true"), true);
+  assert.equal(areMarkdownCommandsEnabled("project/commands.md", false, " true "), true);
+  assert.equal(areMarkdownCommandsEnabled("project/commands.md", true, undefined), true);
+  assert.equal(areMarkdownCommandsEnabled("project/commands.txt", true, true), false);
 });
 
 test("extracts supported shell blocks from README Markdown", () => {

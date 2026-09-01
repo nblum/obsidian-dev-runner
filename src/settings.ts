@@ -7,6 +7,7 @@ import { readScriptTrustKeys } from "./script-security.ts";
 
 export interface DevRunnerSettings {
   disableSecurityWarnings: boolean;
+  enableAllMarkdownFiles: boolean;
   language: LanguagePreference;
   openProcessViewOnInteraction: boolean;
   openReadmesInPreview: boolean;
@@ -16,6 +17,7 @@ export interface DevRunnerSettings {
 
 export const DEFAULT_SETTINGS: DevRunnerSettings = {
   disableSecurityWarnings: false,
+  enableAllMarkdownFiles: false,
   language: "auto",
   openProcessViewOnInteraction: true,
   openReadmesInPreview: true,
@@ -38,6 +40,9 @@ export function readDevRunnerSettings(value: unknown): DevRunnerSettings {
     disableSecurityWarnings: typeof savedSettings.disableSecurityWarnings === "boolean"
       ? savedSettings.disableSecurityWarnings
       : DEFAULT_SETTINGS.disableSecurityWarnings,
+    enableAllMarkdownFiles: typeof savedSettings.enableAllMarkdownFiles === "boolean"
+      ? savedSettings.enableAllMarkdownFiles
+      : DEFAULT_SETTINGS.enableAllMarkdownFiles,
     language: isLanguagePreference(savedSettings.language)
       ? savedSettings.language
       : DEFAULT_SETTINGS.language,

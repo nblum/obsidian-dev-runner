@@ -33,6 +33,34 @@ export function isReadmePath(sourcePath: string): boolean {
   return filename?.toLowerCase() === "readme.md";
 }
 
+/** Returns whether a parsed property value explicitly enables Dev Runner. */
+export function isEnabledDevRunnerValue(value: unknown): boolean {
+  return value === true
+    || (typeof value === "string" && value.trim().toLowerCase() === "true");
+}
+
+/** Reads the Dev Runner property from parsed frontmatter without trusting its shape. */
+export function getDevRunnerFrontmatterValue(frontmatter: unknown): unknown {
+  if (typeof frontmatter !== "object" || frontmatter === null || Array.isArray(frontmatter)) {
+    return undefined;
+  }
+  return (frontmatter as Record<string, unknown>)["dev-runner"];
+}
+
+/** Returns whether one Markdown source is allowed to expose command controls. */
+export function areMarkdownCommandsEnabled(
+  sourcePath: string,
+  enableAllMarkdownFiles: boolean,
+  frontmatterValue: unknown
+): boolean {
+  if (!sourcePath.toLowerCase().endsWith(".md")) {
+    return false;
+  }
+  return isReadmePath(sourcePath)
+    || enableAllMarkdownFiles
+    || isEnabledDevRunnerValue(frontmatterValue);
+}
+
 /** Normalizes rendered and source commands to the same line endings. */
 export function normalizeReadmeCommand(command: string): string {
   return command.replace(/\r\n?/g, "\n").trim();
@@ -44,12 +72,18 @@ export function createReadmeCommandKey(sourcePath: string, command: string): str
   return `readme:${sourcePath}\u0000${digest}`;
 }
 
-/** Creates a concise label from the first non-empty command line. */
-export function createReadmeCommandLabel(command: string, fallbackLabel = "Command"): string {
+/** Creates a concise label from the source file and first non-empty command line. */
+export function createReadmeCommandLabel(
+  command: string,
+  fallbackLabel = "Command",
+  sourcePath = "README.md"
+): string {
   const firstLine = command.split(/\r?\n/).find((line) => line.trim().length > 0)?.trim() ?? fallbackLabel;
   const suffix = command.includes("\n") ? " …" : "";
   const maxLength = 56 - suffix.length;
-  return `README: ${firstLine.length > maxLength ? `${firstLine.slice(0, maxLength - 1)}…` : firstLine}${suffix}`;
+  const filename = sourcePath.split("/").pop()?.replace(/\.md$/i, "");
+  const sourceLabel = filename !== undefined && filename.length > 0 ? filename : "Markdown";
+  return `${sourceLabel}: ${firstLine.length > maxLength ? `${firstLine.slice(0, maxLength - 1)}…` : firstLine}${suffix}`;
 }
 
 /** Extracts executable shell command blocks from README Markdown source. */
