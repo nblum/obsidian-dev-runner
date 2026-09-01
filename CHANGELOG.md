@@ -4,6 +4,8 @@ All notable changes to Dev Runner are documented here.
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-09-01
+
 ### Fixed
 
 - Preserved `cmd.exe` arguments verbatim so Windows commands execute correctly and expose their output.
