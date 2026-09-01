@@ -4,6 +4,17 @@ All notable changes to Dev Runner are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Added per-file `dev-runner: true` frontmatter opt-in, including Obsidian text properties, and an opt-in setting for
+  commands in all Markdown files.
+- Added Windows, macOS, and Linux CI coverage with platform-specific background-process lifecycle tests.
+
+### Fixed
+
+- Unified frontmatter parsing for rendered and revalidated Markdown commands and refreshed open reading views when
+  changing the global Markdown setting.
+
 ## [0.1.4] - 2026-08-31
 
 ### Added

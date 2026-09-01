@@ -15,16 +15,19 @@ output, termination, and security decisions visible inside Obsidian.
 - Users can override automatic detection with npm, pnpm, Yarn, or Bun.
 - Script names are passed as one argument and not interpolated into a POSIX shell command.
 - An active script is represented by a Stop action; a finished script can be started again.
-- A matching README command and package-menu script share one active process identity and Stop action.
+- A matching Markdown command and package-menu script share one active process identity and Stop action.
 
-## README commands
+## Markdown commands
 
-- Only files whose final path component is `README.md`, case-insensitively, receive command buttons.
+- Files whose final path component is `README.md`, case-insensitively, receive command buttons automatically.
+- Other Markdown files require `dev-runner: true` frontmatter unless the global setting is enabled; Obsidian text
+  properties serialized as `"true"` are accepted as an explicit opt-in.
+- The global all-Markdown setting is disabled by default and persisted values must be actual booleans.
 - Rendered `bash`, `sh`, `shell`, and `zsh` fences receive a Play button.
-- The complete normalized code block runs as one shell command in the README directory.
-- The source README is re-read before execution and restart; removed or changed blocks are rejected.
-- README buttons react to shared process changes and switch between Play, Stop, and disabled stopping state.
-- README files open in reading mode by default, but users can disable the behavior or manually enter editing mode.
+- The complete normalized code block runs as one shell command in the Markdown file's directory.
+- The source Markdown and its current opt-in are re-read before execution and restart; removed, changed, or disabled blocks are rejected.
+- Markdown buttons react to shared process changes and switch between Play, Stop, and disabled stopping state.
+- Enabled Markdown files open in reading mode by default, but users can disable the behavior or manually enter editing mode.
 
 ## Process lifecycle
 
@@ -60,7 +63,7 @@ output, termination, and security decisions visible inside Obsidian.
 - Saved approvals can be reset from settings.
 - Security warnings can be disabled explicitly; the secure default is to keep them enabled.
 - The UI and documentation state that confirmation does not sandbox a command.
-- Direct filesystem reads are limited to project metadata and README files inside the selected vault directory.
+- Direct filesystem reads are limited to project metadata and enabled Markdown files inside the selected vault directory.
 - Linux process termination reads `/proc/<pid>/stat` only to verify the original process identity before signaling it.
 - Runtime code does not directly write project files; confirmed child processes retain the user's system permissions.
 
@@ -78,6 +81,7 @@ output, termination, and security decisions visible inside Obsidian.
 ## Technical requirements
 
 - Obsidian `1.8.7` or later on desktop.
+- CI validates linting, tests, and production builds on Windows, macOS, and Linux.
 - Node.js child-process and filesystem APIs available through the desktop application.
 - TypeScript strict mode with checked indexed access and exact optional properties.
 - Deterministic unit tests must not require an Obsidian runtime.

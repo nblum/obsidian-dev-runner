@@ -8,7 +8,7 @@
 
 ![Dev Runner for Obsidian](assets/main-image.webp)
 
-Run package scripts and executable README command blocks directly from Obsidian. Dev Runner keeps each command in
+Run package scripts and executable Markdown command blocks directly from Obsidian. Dev Runner keeps each command in
 the background, captures its latest output, and provides stop, restart, and session-history controls in a sidebar.
 
 > Start, observe, stop: development commands stay attached to the Obsidian lifecycle instead of opening separate
@@ -18,7 +18,7 @@ the background, captures its latest output, and provides stop, restart, and sess
 
 - [Features](#features)
 - [Quick start](#quick-start)
-- [README commands](#readme-commands)
+- [Markdown commands](#markdown-commands)
 - [Process sidebar](#process-sidebar)
 - [Security](#security)
 - [Settings](#settings)
@@ -31,17 +31,18 @@ the background, captures its latest output, and provides stop, restart, and sess
 
 - discovers `package.json` scripts from a folder context menu
 - detects npm, pnpm, Yarn, or Bun from `packageManager` and lockfiles
-- adds Play buttons to shell code blocks in rendered `README.md` files
+- adds Play buttons to shell code blocks in enabled Markdown files
 - starts commands without opening a terminal window
 - captures a bounded tail of combined standard output and standard error
-- prevents the same command and working directory from running twice across package menus and README buttons
+- prevents the same command and working directory from running twice across package menus and Markdown buttons
 - stops complete process trees and restarts commands with their original working directory
 - retains the 50 most recent completed, failed, and stopped runs for the current plugin session
 - provides a German and English interface with automatic Obsidian-language detection
 - warns before executing untrusted commands and supports fingerprinted command approvals
 - terminates active processes when the plugin unloads or Obsidian closes normally
 
-Dev Runner is desktop-only because it uses the local filesystem and Node.js child processes.
+Dev Runner supports Obsidian desktop on Windows, macOS, and Linux. It is desktop-only because it uses the local
+filesystem and Node.js child processes.
 
 ## Quick start
 
@@ -58,21 +59,32 @@ stops the complete process tree.
 ![Dev Runner for Obsidian](assets/dev-runner-overview.webp)
 
 
-## README commands
+## Markdown commands
 
-Rendered shell blocks in files named `README.md` receive a Play button. Supported fence languages are `bash`, `sh`,
-`shell`, and `zsh`:
+Rendered shell blocks in files named `README.md` receive a Play button automatically. Other Markdown files can opt in
+with boolean frontmatter; the **Enable commands in all Markdown files** setting enables them globally and is off by
+default:
+
+```yaml
+---
+dev-runner: true
+---
+```
+
+Obsidian text properties that serialize this value as `dev-runner: "true"` are supported as well.
+
+Supported fence languages are `bash`, `sh`, `shell`, and `zsh`:
 
 ```bash
 npm install
 npm run dev
 ```
 
-The complete block runs through the platform shell with the README directory as its working directory. README files
-open in reading mode by default so the buttons are immediately available; this behavior can be disabled in the
-settings, and editing mode remains available through Obsidian.
+The complete block runs through the platform shell with the Markdown file's directory as its working directory.
+Enabled files open in reading mode by default so the buttons are immediately available; this behavior can be disabled
+in the settings, and editing mode remains available through Obsidian.
 
-A plain README command such as `npm run dev` shares its active state with the equivalent package-menu action in the
+A plain Markdown command such as `npm run dev` shares its active state with the equivalent package-menu action in the
 same directory. Starting it from either place changes both surfaces to Stop, and either Stop action terminates the
 shared process. Compound or multi-line shell blocks retain their own identity because their execution semantics differ.
 
@@ -90,7 +102,7 @@ processes; a reloaded plugin waits for the previous instance's shutdown attempt 
 Package scripts and shell blocks can execute arbitrary code with the permissions of the Obsidian process. They can
 modify files, access the network, start child processes, and read inherited environment variables.
 
-To discover and verify commands, Dev Runner directly reads `package.json`, supported lockfiles, and rendered README
+To discover and verify commands, Dev Runner directly reads `package.json`, supported lockfiles, and enabled Markdown
 files inside the selected vault directory. On Linux it additionally reads `/proc/<pid>/stat` to verify that a process
 ID still belongs to the process group started by the plugin before sending a stop signal. The plugin does not use
 direct filesystem APIs to write project files.
@@ -109,7 +121,8 @@ recommended and is off by default.
 | Language | Automatic | Uses German for German Obsidian locales and English otherwise; both can be selected explicitly. |
 | Package manager | Automatic | Detects the package manager from project metadata and lockfiles. |
 | Open process sidebar on interactions | On | Opens the sidebar after start, stop, and restart actions. |
-| Open README files in reading mode | On | Makes rendered command buttons available when a README is opened. |
+| Open enabled Markdown files in reading mode | On | Makes rendered command buttons available when an enabled file is opened. |
+| Enable commands in all Markdown files | Off | Adds command controls globally; otherwise `README.md` and files with `dev-runner: true` are enabled. |
 | Disable security warnings | Off | Executes commands without the confirmation dialog. |
 | Saved command approvals | Empty | Resets all remembered command fingerprints. |
 
